@@ -13,4 +13,12 @@
     <color name="colorGraph">#eeeeee</color>
     <color name="colorCharging">#00E676</color>
     <color name="colorPrediction">#e6000f</color>
+
+    <color name="bgLauncher">#393D46</color>
+    <color name="bgRound">#25272C</color>
+
+    <color name="colorRed">#ED5B61</color>
+    <color name="colorGrey">#767F8C</color>
+    <color name="colorBlue">#4EA9F6</color>
+    <color name="colorGreen">#0ACF83</color>
 </resources>

@@ -100,20 +100,20 @@ public class AmazModLauncher extends AbstractPlugin {
     private static final String MANAGE_APPS = "App Manager";
     private static final String MANAGE_FILES = "File Manager";
     private static final String MENU_ENTRY = "MENU ENTRY";
-    private static final String[] HIDDEN_APPS = {   "amazmod",
-                                                    "touchone",
-                                                    "watchface",
-                                                    "amazDigitalCyan",
-                                                    "keyboardt9"};
+    private static final String[] HIDDEN_APPS = {"amazmod",
+            "touchone",
+            "watchface",
+            "amazDigitalCyan",
+            "keyboardt9"};
 
 
-    private String[] mItems = { "WiFiToggle",
-                                "KeepAwake"};
+    private String[] mItems = {"WiFiToggle",
+            "KeepAwake"};
 
-    private int[] mImagesOn = { R.drawable.baseline_wifi_white_24,
+    private int[] mImagesOn = {R.drawable.baseline_wifi_white_24,
             R.drawable.ic_power_cycle_white_24dp};
 
-    private int[] mImagesOff = { R.drawable.baseline_wifi_off_white_24,
+    private int[] mImagesOff = {R.drawable.baseline_wifi_off_white_24,
             R.drawable.ic_power_off_white_24dp};
 
     @SuppressLint("WifiManagerPotentialLeak")
@@ -170,7 +170,6 @@ public class AmazModLauncher extends AbstractPlugin {
         battIconImg = view.findViewById(R.id.launcher_batt_icon);
         listView = view.findViewById(R.id.launcher_listview);
 
-        //home = view.findViewById(R.id.launcher_home);
         appmenu = view.findViewById(R.id.launcher_appmenu);
 
         version.setText(String.valueOf(BuildConfig.VERSION_CODE));
@@ -182,7 +181,7 @@ public class AmazModLauncher extends AbstractPlugin {
         hiddenAppsList = new ArrayList<>();
         items = new ArrayList<>();
         boolean state;
-        for (int i=0; i<mItems.length; i++){
+        for (int i = 0; i < mItems.length; i++) {
             try {
                 if (i == 0)
                     state = wfmgr.isWifiEnabled();
@@ -287,7 +286,7 @@ public class AmazModLauncher extends AbstractPlugin {
                     isWakeLockEnabled = false;
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.keep_awake_disabled), Toast.LENGTH_SHORT).show();
                 } else {
-                    wakeLockDim.acquire(60*60*1000L /*1 hour*/);
+                    wakeLockDim.acquire(60 * 60 * 1000L /*1 hour*/);
                     isWakeLockEnabled = true;
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.keep_awake_dim_enabled), Toast.LENGTH_SHORT).show();
                 }
@@ -301,7 +300,7 @@ public class AmazModLauncher extends AbstractPlugin {
             public boolean onLongClick(View v) {
 
                 if (!wakeLockScreenOn.isHeld()) {
-                    wakeLockScreenOn.acquire(60*60*1000L /*1 hour*/);
+                    wakeLockScreenOn.acquire(60 * 60 * 1000L /*1 hour*/);
                     isWakeLockEnabled = true;
                     Toast.makeText(mContext, mContext.getResources().getString(R.string.keep_awake_screen_on_enabled), Toast.LENGTH_SHORT).show();
                     items.get(1).setState(isWakeLockEnabled);
@@ -367,6 +366,7 @@ public class AmazModLauncher extends AbstractPlugin {
             int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
             int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
             int batteryIconId = batteryStatus.getIntExtra(BatteryManager.EXTRA_ICON_SMALL, 0);
+            boolean charge = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, 0) == BatteryManager.BATTERY_STATUS_CHARGING;
 
             //Set battery icon and text
             int battery = Math.round((level / (float) scale) * 100f);
@@ -381,19 +381,34 @@ public class AmazModLauncher extends AbstractPlugin {
 
             LevelListDrawable batteryLevel = (LevelListDrawable) mContext.getResources().getDrawable(batteryIconId);
             batteryLevel.setLevel(level);
+            Logger.error("updateCharge: " + batteryIconId);
 
             getHost().runTaskOnUI(AmazModLauncher.this, new Runnable() {
                 @Override
                 public void run() {
                     if (battValueTV != null)
                         battValueTV.setText(msg);
-                    if (battIconImg != null)
-                        battIconImg.setImageDrawable(batteryLevel);
+                    if (charge) {
+                        battIconImg.setImageDrawable(mContext.getDrawable(R.drawable.ic_batt_charge));
+                    } else {
+                        if (battIconImg != null)
+                            setBattIconImg(level);
+                    }
                 }
             });
 
         } else
             Logger.error("AmazModLauncher updateCharge error: null batteryStatus!");
+    }
+
+    private void setBattIconImg(int level) {
+        if (level <= 15) {
+            battIconImg.setImageDrawable(mContext.getDrawable(R.drawable.ic_batt_15));
+        } else if (level <= 50) {
+            battIconImg.setImageDrawable(mContext.getDrawable(R.drawable.ic_batt_50));
+        } else if (level <= 100) {
+            battIconImg.setImageDrawable(mContext.getDrawable(R.drawable.ic_batt_100));
+        }
 
     }
 
@@ -408,7 +423,7 @@ public class AmazModLauncher extends AbstractPlugin {
 
     private void refreshIcons() {
         boolean state;
-        for (int i=0; i<mItems.length; i++){
+        for (int i = 0; i < mItems.length; i++) {
             try {
                 if (i == 0)
                     state = wfmgr.isWifiEnabled();
@@ -473,31 +488,31 @@ public class AmazModLauncher extends AbstractPlugin {
         final Drawable filesDrawable = mContext.getResources().getDrawable(R.drawable.outline_folder_white_24);
 
         Flowable.fromCallable(new Callable<List<AppInfo>>() {
-            @Override
-            public List<AppInfo> call() {
-                Logger.info("AmazModLauncher loadApps call");
-                List<PackageInfo> packageInfoList = mContext.getPackageManager().getInstalledPackages(0);
+                    @Override
+                    public List<AppInfo> call() {
+                        Logger.info("AmazModLauncher loadApps call");
+                        List<PackageInfo> packageInfoList = mContext.getPackageManager().getInstalledPackages(0);
 
-                List<AppInfo> appInfoList = new ArrayList<>();
+                        List<AppInfo> appInfoList = new ArrayList<>();
 
-                for (PackageInfo packageInfo : packageInfoList) {
+                        for (PackageInfo packageInfo : packageInfoList) {
 
-                    boolean isSystemApp = (packageInfo.applicationInfo.flags & (ApplicationInfo.FLAG_UPDATED_SYSTEM_APP | ApplicationInfo.FLAG_SYSTEM)) > 0;
-                    if  (!isSystemApp && (!isHiddenApp(packageInfo.packageName))) {
-                        AppInfo appInfo = createAppInfo(packageInfo);
+                            boolean isSystemApp = (packageInfo.applicationInfo.flags & (ApplicationInfo.FLAG_UPDATED_SYSTEM_APP | ApplicationInfo.FLAG_SYSTEM)) > 0;
+                            if (!isSystemApp && (!isHiddenApp(packageInfo.packageName))) {
+                                AppInfo appInfo = createAppInfo(packageInfo);
+                                appInfoList.add(appInfo);
+                            }
+                        }
+
+                        sortAppInfo(appInfoList);
+                        AppInfo appInfo = new AppInfo(MANAGE_FILES, "", MENU_ENTRY, "0", filesDrawable);
                         appInfoList.add(appInfo);
+                        appInfo = new AppInfo(MANAGE_APPS, "", MENU_ENTRY, "0", appsDrawable);
+                        appInfoList.add(appInfo);
+                        AmazModLauncher.this.appInfoList = appInfoList;
+                        return appInfoList;
                     }
-                }
-
-                sortAppInfo(appInfoList);
-                AppInfo appInfo = new AppInfo(MANAGE_FILES, "", MENU_ENTRY, "0", filesDrawable);
-                appInfoList.add(appInfo);
-                appInfo = new AppInfo(MANAGE_APPS, "", MENU_ENTRY, "0", appsDrawable);
-                appInfoList.add(appInfo);
-                AmazModLauncher.this.appInfoList = appInfoList;
-                return appInfoList;
-            }
-        }).subscribeOn(Schedulers.computation())
+                }).subscribeOn(Schedulers.computation())
                 .observeOn(Schedulers.single())
                 .subscribe(new Consumer<List<AppInfo>>() {
                     @Override
@@ -584,6 +599,7 @@ public class AmazModLauncher extends AbstractPlugin {
         receiverSSID = new BroadcastReceiver() {
 
             boolean flag = false;
+
             @Override
             public void onReceive(Context context, Intent intent) {
                 WifiInfo wifiInfo = wfmgr.getConnectionInfo();
@@ -598,7 +614,7 @@ public class AmazModLauncher extends AbstractPlugin {
                 if (wifiInfo.getSupplicantState().equals(SupplicantState.COMPLETED) && flag) {
                     flag = false;
                     vibrator.vibrate(100);
-                    Toast.makeText(mContext, mContext.getResources().getString(R.string.wifi_connected_to)+ "\n" + wifiInfo.getSSID(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, mContext.getResources().getString(R.string.wifi_connected_to) + "\n" + wifiInfo.getSSID(), Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -613,13 +629,13 @@ public class AmazModLauncher extends AbstractPlugin {
         String name = appInfoList.get(itemChosen).getAppName();
         final String version = appInfoList.get(itemChosen).getVersionName();
         //Logger.debug("AmazModLauncher onClick itemChosen: " + itemChosen);
-        if (name.equals("File Manager")){
+        if (name.equals("File Manager")) {
             name = mContext.getResources().getString(R.string.file_manager);
         }
-        if (name.equals("App Manager")){
+        if (name.equals("App Manager")) {
             name = mContext.getResources().getString(R.string.app_manager);
         }
-        Toast.makeText(mContext, mContext.getResources().getString(R.string.opening)+ " " + name, Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, mContext.getResources().getString(R.string.opening) + " " + name, Toast.LENGTH_SHORT).show();
 
         if (MANAGE_APPS.equals(appInfoList.get(itemChosen).getAppName()) && MENU_ENTRY.equals(version)) {
 
@@ -672,7 +688,7 @@ public class AmazModLauncher extends AbstractPlugin {
                 }.getType();
                 hiddenAppsList = new Gson().fromJson(hiddenAppsJson, listType);
                 if (hiddenAppsList.isEmpty())
-                        return;
+                    return;
                 if (update && (!appInfoList.isEmpty())) {
                     for (Object value : hiddenAppsList) {
                         final int del = appInfoList.indexOf(value);
@@ -731,8 +747,8 @@ public class AmazModLauncher extends AbstractPlugin {
         // If view loaded (and was inactive)
         if (this.view != null && !this.isActive) {
             // If not the correct view
-                // Refresh the view
-                this.refreshView();
+            // Refresh the view
+            this.refreshView();
         }
 
         // Save state
@@ -750,11 +766,13 @@ public class AmazModLauncher extends AbstractPlugin {
         super.onInactive(paramBundle);
         this.onHide();
     }
+
     @Override
     public void onPause() {
         super.onPause();
         this.onHide();
     }
+
     @Override
     public void onStop() {
         super.onStop();
@@ -831,7 +849,7 @@ public class AmazModLauncher extends AbstractPlugin {
         SettingsManager settingsManager = new SettingsManager(mContext);
         // Get phone app language
         String language = DeviceUtil.systemGetString(mContext, "AmazModLocale");
-        Logger.debug("Amazmod locale app language: "+language);
+        Logger.debug("Amazmod locale app language: " + language);
 
         if (language == null)
             return;
@@ -842,7 +860,7 @@ public class AmazModLauncher extends AbstractPlugin {
                 Logger.debug("Amazmod locale: Hebrew font is missing, setting english language");
             } else
                 Logger.debug("Amazmod locale: Hebrew font exist, setting language as normal");
-        }else if (language.contains("ar")) {
+        } else if (language.contains("ar")) {
             if (!new File("/system/fonts/NotoSansArabic-Regular.ttf").exists()) {
                 language = "en_EN";
                 Logger.debug("Amazmod locale: Arabic font is missing, setting english language");
@@ -855,7 +873,7 @@ public class AmazModLauncher extends AbstractPlugin {
         conf.locale = getLocaleByLanguageCode(language);
         res.updateConfiguration(conf, dm);
 
-        Logger.debug("Amazmod locale set:"+getLocaleByLanguageCode(language));
+        Logger.debug("Amazmod locale set:" + getLocaleByLanguageCode(language));
     }
 
     private static Locale getLocaleByLanguageCode(String languageCode) {
